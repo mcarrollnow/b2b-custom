@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Request Form</title>
+  <style>
+    body { background: #181818; margin: 0; font-family: Arial, sans-serif; }
+    .login-box {
+      width: 95vw;
+      min-width: 0;
+      max-width: 100vw;
+      padding: 16px;
+      position: relative;
+      margin: 40px auto 20px auto;
+      background: rgba(0,0,0,.95);
+      box-sizing: border-box;
+      box-shadow: 0 15px 25px rgba(255, 255, 255, 0.14);
+      border-radius: 10px;
+      z-index: 1;
+    }
+    @media (min-width: 700px) {
+      .login-box {
+        width: 600px;
+        padding: 24px;
+        margin: 60px auto 40px auto;
+      }
+    }
+    .login-box p:first-child {
+      margin: 0 0 30px;
+      padding: 0;
+      color: #fff;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    .login-box .user-box {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .login-box .user-box:last-of-type {
+      margin-bottom: 20px;
+    }
+    .login-box .user-box input, .login-box .user-box textarea {
+      width: 100%;
+      padding: 6px 0;
+      font-size: 16px;
+      color: #fff;
+      border: none;
+      border-bottom: 1px solid #fff;
+      outline: none;
+      background: transparent;
+      resize: none;
+    }
+    .login-box .user-box label {
+      position: absolute;
+      top: 0;
+      left: 0;
+      padding: 10px 0;
+      font-size: 16px;
+      color: #fff;
+      pointer-events: none;
+      transition: .5s;
+    }
+    .login-box .user-box input:focus ~ label,
+    .login-box .user-box input:valid ~ label,
+    .login-box .user-box textarea:focus ~ label,
+    .login-box .user-box textarea:valid ~ label {
+      top: -20px;
+      left: 0;
+      color: #fff;
+      font-size: 12px;
+    }
+    .item-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      margin-bottom: 20px;
+    }
+    .item-row:first-of-type {
+      margin-top: 28px;
+    }
+    .item-row .item-box,
+    .item-row .item-box.inline,
+    .item-row .qty-box,
+    .item-row .qty-box.inline {
+      border-bottom: 1px solid #fff;
+      position: relative;
+    }
+    .item-row .item-box input,
+    .item-row .qty-box input {
+      width: 100%;
+      flex: unset;
+    }
+    .item-row .item-inline-label,
+    .item-row .qty-inline-label {
+      display: none;
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      color: #fff;
+      font-size: 16px;
+      font-family: inherit;
+      white-space: nowrap;
+      pointer-events: none;
+      background: transparent;
+      z-index: 2;
+      height: 24px;
+      line-height: 24px;
+      padding-bottom: 2px;
+    }
+    .item-row .item-box.inline .item-inline-label,
+    .item-row .qty-box.inline .qty-inline-label {
+      display: flex;
+      align-items: flex-end;
+      pointer-events: auto;
+    }
+    .item-row .item-box.inline input,
+    .item-row .qty-box.inline input {
+      display: none;
+    }
+    .item-row .item-box {
+      flex: 2;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+    }
+    .item-row .item-box input {
+      flex: 1;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    .item-row .item-box.inline .item-inline-label {
+      display: block;
+    }
+    .item-row .item-box.inline input {
+      border: none;
+      background: transparent;
+      color: #fff;
+      font-size: 16px;
+      padding-left: 0;
+      width: auto;
+      flex: unset;
+      outline: none;
+      box-shadow: none;
+    }
+    .item-row .item-box.inline label {
+      display: none;
+    }
+    .item-row .qty-box {
+      flex: 0.7;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+    }
+    .item-row .qty-box input {
+      flex: 1;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    .item-row .qty-box.inline .qty-inline-label {
+      display: block;
+    }
+    .item-row .qty-box.inline input {
+      border: none;
+      background: transparent;
+      color: #fff;
+      font-size: 16px;
+      padding-left: 0;
+      width: auto;
+      flex: unset;
+      outline: none;
+      box-shadow: none;
+    }
+    .item-row .qty-box.inline label {
+      display: none;
+    }
+    .qty-popup {
+      display: none;
+      position: absolute;
+      left: 0;
+      top: 110%;
+      background: #181818;
+      border: 1px solid #fff;
+      border-radius: 6px;
+      z-index: 10;
+      min-width: 100%;
+      box-shadow: 0 2px 8px rgba(255,255,255,0.14);
+    }
+    .qty-popup.active {
+      display: block;
+    }
+    .qty-popup-option {
+      color: #fff;
+      padding: 6px 0 6px 10px;
+      cursor: pointer;
+      font-size: 16px;
+      background: transparent;
+      border-bottom: 1px solid #333;
+      transition: background 0.2s;
+    }
+    .qty-popup-option:last-child {
+      border-bottom: none;
+    }
+    .qty-popup-option:hover {
+      background: #222;
+    }
+    .login-box form button {
+      position: relative;
+      display: inline-block;
+      padding: 10px 20px;
+      font-weight: bold;
+      color: #fff;
+      font-size: 16px;
+      text-decoration: none;
+      text-transform: uppercase;
+      overflow: hidden;
+      transition: .5s;
+      margin-top: 40px;
+      letter-spacing: 3px;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+    .login-box button:hover {
+      background: #fff;
+      color: #272727;
+      border-radius: 5px;
+    }
+    .login-box button span {
+      position: absolute;
+      display: block;
+    }
+    .login-box button span:nth-child(1) {
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #fff);
+      animation: btn-anim1 1.5s linear infinite;
+    }
+    @keyframes btn-anim1 {
+      0% { left: -100%; }
+      50%,100% { left: 100%; }
+    }
+    .login-box button span:nth-child(2) {
+      top: -100%;
+      right: 0;
+      width: 2px;
+      height: 100%;
+      background: linear-gradient(180deg, transparent, #fff);
+      animation: btn-anim2 1.5s linear infinite;
+      animation-delay: .375s
+    }
+    @keyframes btn-anim2 {
+      0% { top: -100%; }
+      50%,100% { top: 100%; }
+    }
+    .login-box button span:nth-child(3) {
+      bottom: 0;
+      right: -100%;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(270deg, transparent, #fff);
+      animation: btn-anim3 1.5s linear infinite;
+      animation-delay: .75s
+    }
+    @keyframes btn-anim3 {
+      0% { right: -100%; }
+      50%,100% { right: 100%; }
+    }
+    .login-box button span:nth-child(4) {
+      bottom: -100%;
+      left: 0;
+      width: 2px;
+      height: 100%;
+      background: linear-gradient(360deg, transparent, #fff);
+      animation: btn-anim4 1.5s linear infinite;
+      animation-delay: 1.125s
+    }
+    @keyframes btn-anim4 {
+      0% { bottom: -100%; }
+      50%,100% { bottom: 100%; }
+    }
+    .login-box p:last-child {
+      color: #aaa;
+      font-size: 14px;
+    }
+    .login-box .success {
+      color: #4caf50;
+      text-align: center;
+      margin-top: 16px;
+    }
+    .login-box .error {
+      color: #ff5252;
+      text-align: center;
+      margin-top: 16px;
+    }
+    .hidden { display: none; }
+    .autocomplete-list {
+      position: absolute;
+      left: 0;
+      top: 100%;
+      width: 100%;
+      background: #181818;
+      border: 1px solid #fff;
+      border-radius: 0 0 6px 6px;
+      z-index: 20;
+      box-shadow: 0 2px 8px rgba(255,255,255,0.14);
+      color: #fff;
+      font-size: 16px;
+      font-family: inherit;
+      margin-top: -2px;
+      padding: 0;
+      list-style: none;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    .autocomplete-item {
+      padding: 6px 12px;
+      cursor: pointer;
+      background: transparent;
+      border-bottom: 1px solid #333;
+      transition: background 0.2s;
+    }
+    .autocomplete-item:last-child {
+      border-bottom: none;
+    }
+    .autocomplete-item:hover, .autocomplete-item.active {
+      background: #222;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <p>Request Form</p>
+    <form id="requestForm" autocomplete="off">
+      <div class="user-box">
+        <input type="text" id="name" name="name" required placeholder=" ">
+        <label for="name">Name</label>
+      </div>
+      <div class="user-box">
+        <input type="email" id="email" name="email" required placeholder=" ">
+        <label for="email">Email</label>
+      </div>
+      <!-- Honeypot field -->
+      <input type="text" name="company" class="hidden" tabindex="-1" autocomplete="off">
+      <div id="itemFields"></div>
+      <div class="user-box">
+        <textarea id="special" name="special" rows="2" required placeholder=" "></textarea>
+        <label for="special">Special Instructions</label>
+      </div>
+      <button type="button" id="submitBtn">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        Submit
+      </button>
+      <div id="formMessage"></div>
+    </form>
+  </div>
+  <script>
+    let PRICE_LIST = {};
+    let ITEM_NAMES = [];
+    async function fetchPriceList() {
+      const res = await fetch('/api/send-request/pricelist');
+      const items = await res.json();
+      PRICE_LIST = {};
+      ITEM_NAMES = [];
+      for (const {item, price} of items) {
+        PRICE_LIST[item] = price;
+        ITEM_NAMES.push(item);
+      }
+    }
+    // Generate 10 item/quantity rows with popup for qty
+    const itemFields = document.getElementById('itemFields');
+    const qtyOptions = [10, 50, 100, 200, 500, ];
+    for (let i = 0; i < 10; i++) {
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      row.innerHTML = `
+        <div class="item-box user-box">
+          <span class="item-inline-label" id="item-inline-label-${i+1}">
+            <span class="item-label-static">Item #${i+1} - </span>
+            <span class="item-label-value"></span>
+          </span>
+          <input type="text" id="item_${i+1}" name="item_${i+1}" required placeholder=" " autocomplete="off">
+          <label for="item_${i+1}">Item #${i+1}</label>
+        </div>
+        <div class="qty-box user-box">
+          <span class="qty-inline-label" id="qty-inline-label-${i+1}">
+            <span class="qty-label-static">Qty - </span>
+            <span class="qty-label-value"></span>
+          </span>
+          <input type="text" id="qty_${i+1}" name="qty_${i+1}" required placeholder=" " readonly>
+          <label for="qty_${i+1}">Qty</label>
+          <div class="qty-popup" id="qty-popup-${i+1}">
+            ${qtyOptions.map(opt => `<div class='qty-popup-option' data-value='${opt === 'Custom' ? '' : opt}'>${opt}</div>`).join('')}
+            <div class='qty-popup-option' data-value='custom'>Custom Amount</div>
+          </div>
+        </div>
+      `;
+      itemFields.appendChild(row);
+    }
+    // Popup logic for qty
+    document.querySelectorAll('.qty-box input').forEach((input, idx) => {
+      const popup = document.getElementById(`qty-popup-${idx+1}`);
+      input.addEventListener('focus', () => {
+        popup.classList.add('active');
+      });
+      input.addEventListener('blur', () => {
+        setTimeout(() => popup.classList.remove('active'), 200);
+      });
+      popup.querySelectorAll('.qty-popup-option').forEach(opt => {
+        opt.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          if (opt.textContent === 'Custom Amount') {
+            input.readOnly = false;
+            input.value = '';
+            input.focus();
+          } else {
+            input.value = opt.getAttribute('data-value');
+            input.readOnly = true;
+          }
+          popup.classList.remove('active');
+        });
+      });
+    });
+    // Handle form submit
+    document.getElementById('submitBtn').addEventListener('click', async function(e) {
+      e.preventDefault();
+      const form = document.getElementById('requestForm');
+      const data = new FormData(form);
+      // Simple honeypot check
+      if (data.get('company')) {
+        return;
+      }
+      const payload = {
+        name: data.get('name'),
+        email: data.get('email'),
+        items: Array.from({length: 10}).map((_, i) => ({
+          item: data.get(`item_${i+1}`),
+          qty: data.get(`qty_${i+1}`)
+        })).filter(row => row.item),
+        special: data.get('special')
+      };
+      const res = await fetch('/api/send-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const msgDiv = document.getElementById('formMessage');
+      if (res.ok) {
+        form.reset();
+        msgDiv.textContent = 'Thank you for your submission. We will be in touch with you shortly.';
+        msgDiv.className = 'success';
+      } else {
+        msgDiv.textContent = 'There was an error sending your request. Please try again.';
+        msgDiv.className = 'error';
+      }
+    });
+    // Add autocomplete to item fields (from backend)
+    function setupAutocomplete(input) {
+      let list;
+      let suppressNextInput = false;
+      input.addEventListener('input', function() {
+        if (suppressNextInput) {
+          suppressNextInput = false;
+          return;
+        }
+        const val = input.value.trim().toLowerCase();
+        if (!val) {
+          if (list) list.remove();
+          return;
+        }
+        const suggestions = ITEM_NAMES.filter(name => name.toLowerCase().includes(val));
+        if (list) list.remove();
+        if (!suggestions.length) return;
+        list = document.createElement('ul');
+        list.className = 'autocomplete-list';
+        suggestions.forEach((s, idx) => {
+          const item = document.createElement('li');
+          item.className = 'autocomplete-item';
+          item.textContent = s;
+          item.addEventListener('mousedown', e => {
+            e.preventDefault();
+            input.value = s;
+            suppressNextInput = true;
+            input.blur();
+            if (list) list.remove();
+          });
+          list.appendChild(item);
+        });
+        input.parentNode.appendChild(list);
+      });
+      input.addEventListener('blur', function() {
+        setTimeout(() => { if (list) list.remove(); }, 150);
+      });
+    }
+    document.querySelectorAll('.item-box input').forEach(setupAutocomplete);
+    // Add after setupAutocomplete:
+    document.querySelectorAll('.item-box input').forEach((input, idx) => {
+      const box = input.closest('.item-box');
+      const inlineLabel = box.querySelector('.item-inline-label');
+      const valueSpan = inlineLabel.querySelector('.item-label-value');
+      input.addEventListener('blur', function() {
+        if (input.value) {
+          box.classList.add('inline');
+          valueSpan.textContent = input.value;
+          input.style.display = 'none';
+        } else {
+          box.classList.remove('inline');
+          valueSpan.textContent = '';
+          input.style.display = '';
+        }
+      });
+      box.addEventListener('click', function() {
+        if (box.classList.contains('inline')) {
+          box.classList.remove('inline');
+          input.value = valueSpan.textContent;
+          input.style.display = '';
+          valueSpan.textContent = '';
+          input.focus();
+        }
+      });
+    });
+    // Add after setupAutocomplete:
+    document.querySelectorAll('.qty-box input').forEach((input, idx) => {
+      const box = input.closest('.qty-box');
+      const inlineLabel = box.querySelector('.qty-inline-label');
+      const valueSpan = inlineLabel.querySelector('.qty-label-value');
+      input.addEventListener('blur', function() {
+        if (input.value) {
+          box.classList.add('inline');
+          valueSpan.textContent = input.value;
+          input.style.display = 'none';
+        } else {
+          box.classList.remove('inline');
+          valueSpan.textContent = '';
+          input.style.display = '';
+        }
+      });
+      box.addEventListener('click', function() {
+        if (box.classList.contains('inline')) {
+          box.classList.remove('inline');
+          input.value = valueSpan.textContent;
+          input.style.display = '';
+          valueSpan.textContent = '';
+          input.focus();
+        }
+      });
+    });
+    // On page load, fetch price list and initialize autocomplete
+    fetchPriceList().then(() => {
+      document.querySelectorAll('.item-box input').forEach(setupAutocomplete);
+    });
+  </script>
+</body>
+</html> 
