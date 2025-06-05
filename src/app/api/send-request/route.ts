@@ -134,38 +134,50 @@ Order Total: $${orderTotal.toFixed(2)}`;
       const spreadsheetId = '1NgljLac71DtjWuV9gvaWxIAmdFHR6tjGrJ2dRgacHrQ';
       const range = 'Sheet1!A1:Z'; // Adjust if your tab is not Sheet1
       
-      // Parse items into separate columns (up to 10 items with quantities)
-      const itemColumns: string[] = [];
-      const qtyColumns: string[] = [];
-      for (let i = 0; i < 10; i++) {
+      // Create arrays for all columns
+      const row = [
+        new Date().toISOString(), // A: Timestamp
+        '', // B: Customer Rank (empty for now)
+        referredBy || '', // C: Referred by
+        name, // D: Name
+        email, // E: Email
+        '', // F: Mobile Number (not collected yet)
+        orderCode, // G: Purchase Order Number
+      ];
+      
+      // Add Product columns (H-W: columns 7-23)
+      for (let i = 0; i < 8; i++) {
         const item = items[i];
-        itemColumns.push(item?.item || '');
-        qtyColumns.push(item?.qty || '');
+        row.push(item?.item || ''); // Product columns
       }
       
-      const row = [
-        new Date().toISOString(), // Timestamp
-        '', // Customer Rank (empty for now)
-        referredBy || '', // Referred by
-        name, // Name
-        email, // Email
-        '', // Mobile Number (not collected yet)
-        orderCode, // Purchase Order Number
-        ...itemColumns, // Product (1) through Product (10)
-        ...qtyColumns, // Quantity (1) through Quantity (10)
-        shippingAddress || '', // Shipping Address Street
-        shippingCity || '', // Shipping Address City
-        shippingZip || '', // Shipping Address Zip
-        shippingState || '', // Shipping Address State
-        '', // Invoice Platform (empty for now)
-        '', // Invoice Timestamp (empty for now)
-        '', // Invoice ID (empty for now)
-        '', // Invoice Status (empty for now)
-        orderTotal.toFixed(2), // Total Amount Due
-        '', // Total Amount Paid (empty for now)
-        '', // Balance Owed (empty for now)
-        special || '', // Special Instructions
-      ];
+      // Add Quantity columns (X-AF: columns 24-31)
+      for (let i = 0; i < 8; i++) {
+        const item = items[i];
+        row.push(item?.qty || ''); // Quantity columns
+      }
+      
+      // Add shipping address fields (Z-AC: columns 25-28)
+      row.push(
+        shippingAddress || '', // Z: Shipping Address Street
+        shippingCity || '',    // AA: Shipping Address City
+        shippingZip || '',     // AB: Shipping Address Zip
+        shippingState || ''    // AC: Shipping Address State
+      );
+      
+      // Add invoice fields (AD-AJ: columns 29-35)
+      row.push(
+        '', // AD: Invoice Platform
+        '', // AE: Invoice Timestamp
+        '', // AF: Invoice ID
+        '', // AG: Invoice Status
+        orderTotal.toFixed(2), // AH: Total Amount Due
+        '', // AI: Total Amount Paid
+        ''  // AJ: Balance Owed
+      );
+      
+      // Add special instructions (AK: column 36)
+      row.push(special || '');
       
       await sheets.spreadsheets.values.append({
         spreadsheetId,
