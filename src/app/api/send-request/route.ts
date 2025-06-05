@@ -100,6 +100,37 @@ export async function POST(req: NextRequest) {
       text: mailText,
       replyTo: email,
     });
+
+    // --- Google Sheets append logic ---
+    try {
+      // Dynamically import googleapis for edge compatibility
+      const { google } = await import('googleapis');
+      const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON!);
+      const auth = new google.auth.GoogleAuth({
+        credentials,
+        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+      });
+      const sheets = google.sheets({ version: 'v4', auth });
+      const spreadsheetId = '1NgljLac71DtjWuV9gvaWxIAmdFHR6tjGrJ2dRgacHrQ';
+      const range = 'Sheet1!A1:Z'; // Adjust if your tab is not Sheet1
+      const row = [
+        new Date().toISOString(),
+        orderCode,
+        name,
+        email,
+        orderTotal.toFixed(2),
+        itemList.replace(/\n/g, '; '),
+      ];
+      await sheets.spreadsheets.values.append({
+        spreadsheetId,
+        range,
+        valueInputOption: 'USER_ENTERED',
+        requestBody: { values: [row] },
+      });
+    } catch (sheetError) {
+      console.error('Failed to append to Google Sheet:', sheetError);
+      // Optionally, return error here if you want to fail the whole request
+    }
     return NextResponse.json({ ok: true, orderTotal: orderTotal.toFixed(2) });
   } catch (error) {
     console.error('API send-request error:', error);
