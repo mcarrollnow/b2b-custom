@@ -134,46 +134,47 @@ Order Total: $${orderTotal.toFixed(2)}`;
       const spreadsheetId = '1NgljLac71DtjWuV9gvaWxIAmdFHR6tjGrJ2dRgacHrQ';
       const range = 'Sheet1!A1:Z'; // Adjust if your tab is not Sheet1
       
-      // Create arrays for all columns
+      // Create arrays for all columns - EXACTLY matching the CSV template
       const row = [
-        new Date().toISOString(), // A: Timestamp
-        '', // B: Customer Rank (empty for now)
-        referredBy || '', // C: Referred by
-        name, // D: Name
-        email, // E: Email
-        '', // F: Mobile Number (not collected yet)
-        orderCode, // G: Purchase Order Number
+        new Date().toISOString(), // Timestamp
+        '', // Customer Rank (empty for now)
+        referredBy || '', // Referred by
+        name, // Name
+        email, // Email
+        '', // Mobile Number (not collected yet)
+        orderCode, // Purchase Order Number
       ];
       
-      // Add Product columns (H-O: columns 8-15)
+      // Add 8 product/quantity pairs (columns 8-23)
       for (let i = 0; i < 8; i++) {
         const item = items[i];
-        // Add product
-        row.push(item?.item || '');
-        // Add quantity immediately after each product
-        row.push(item?.qty || '');
+        row.push(item?.item || ''); // Product
+        row.push(item?.qty || ''); // Quantity
       }
       
-      // Add shipping address fields (Y-AB: columns 25-28)
+      // Add Product (9) and Quantity (9) - columns 24-25
+      row.push('', ''); // Empty for now
+      
+      // Add shipping address fields (columns 26-29)
       row.push(
-        shippingAddress || '', // Y: Shipping Address Street
-        shippingCity || '',    // Z: Shipping Address City
-        shippingZip || '',     // AA: Shipping Address Zip
-        shippingState || ''    // AB: Shipping Address State
+        shippingAddress || '', // Shipping Address Street
+        shippingCity || '',    // Shipping Address City
+        shippingZip || '',     // Shipping Address Zip
+        shippingState || ''    // Shipping Address State
       );
       
-      // Add invoice fields (AC-AI: columns 29-35)
+      // Add invoice fields (columns 30-35)
       row.push(
-        '', // AC: Invoice Platform
-        '', // AD: Invoice Timestamp
-        '', // AE: Invoice ID
-        '', // AF: Invoice Status
-        orderTotal.toFixed(2), // AG: Total Amount Due
-        '', // AH: Total Amount Paid
-        ''  // AI: Balance Owed
+        '', // Invoice Platform
+        '', // Invoice Timestamp
+        '', // Invoice ID
+        '', // Invoice Status
+        orderTotal.toFixed(2), // Total Amount Due
+        '', // Total Amount Paid
+        ''  // Balance Owed
       );
       
-      // Add special instructions (AJ: column 36)
+      // Add special instructions (column 36)
       row.push(special || '');
       
       await sheets.spreadsheets.values.append({
