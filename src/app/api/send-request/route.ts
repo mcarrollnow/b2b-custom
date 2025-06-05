@@ -145,38 +145,35 @@ Order Total: $${orderTotal.toFixed(2)}`;
         orderCode, // G: Purchase Order Number
       ];
       
-      // Add Product columns (H-W: columns 7-23)
+      // Add Product columns (H-O: columns 8-15)
       for (let i = 0; i < 8; i++) {
         const item = items[i];
-        row.push(item?.item || ''); // Product columns
+        // Add product
+        row.push(item?.item || '');
+        // Add quantity immediately after each product
+        row.push(item?.qty || '');
       }
       
-      // Add Quantity columns (X-AF: columns 24-31)
-      for (let i = 0; i < 8; i++) {
-        const item = items[i];
-        row.push(item?.qty || ''); // Quantity columns
-      }
-      
-      // Add shipping address fields (Z-AC: columns 25-28)
+      // Add shipping address fields (Y-AB: columns 25-28)
       row.push(
-        shippingAddress || '', // Z: Shipping Address Street
-        shippingCity || '',    // AA: Shipping Address City
-        shippingZip || '',     // AB: Shipping Address Zip
-        shippingState || ''    // AC: Shipping Address State
+        shippingAddress || '', // Y: Shipping Address Street
+        shippingCity || '',    // Z: Shipping Address City
+        shippingZip || '',     // AA: Shipping Address Zip
+        shippingState || ''    // AB: Shipping Address State
       );
       
-      // Add invoice fields (AD-AJ: columns 29-35)
+      // Add invoice fields (AC-AI: columns 29-35)
       row.push(
-        '', // AD: Invoice Platform
-        '', // AE: Invoice Timestamp
-        '', // AF: Invoice ID
-        '', // AG: Invoice Status
-        orderTotal.toFixed(2), // AH: Total Amount Due
-        '', // AI: Total Amount Paid
-        ''  // AJ: Balance Owed
+        '', // AC: Invoice Platform
+        '', // AD: Invoice Timestamp
+        '', // AE: Invoice ID
+        '', // AF: Invoice Status
+        orderTotal.toFixed(2), // AG: Total Amount Due
+        '', // AH: Total Amount Paid
+        ''  // AI: Balance Owed
       );
       
-      // Add special instructions (AK: column 36)
+      // Add special instructions (AJ: column 36)
       row.push(special || '');
       
       await sheets.spreadsheets.values.append({
