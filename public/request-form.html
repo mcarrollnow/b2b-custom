@@ -344,6 +344,26 @@
         <input type="email" id="email" name="email" required placeholder=" ">
         <label for="email">Email</label>
       </div>
+      <div class="user-box">
+        <input type="text" id="referredBy" name="referredBy" required placeholder=" ">
+        <label for="referredBy">Referred By</label>
+      </div>
+      <div class="user-box">
+        <input type="text" id="shippingAddress" name="shippingAddress" required placeholder=" ">
+        <label for="shippingAddress">Shipping Address</label>
+      </div>
+      <div class="user-box">
+        <input type="text" id="shippingCity" name="shippingCity" required placeholder=" ">
+        <label for="shippingCity">Shipping City</label>
+      </div>
+      <div class="user-box">
+        <input type="text" id="shippingState" name="shippingState" required placeholder=" ">
+        <label for="shippingState">Shipping State</label>
+      </div>
+      <div class="user-box">
+        <input type="text" id="shippingZip" name="shippingZip" required placeholder=" ">
+        <label for="shippingZip">Shipping Zip</label>
+      </div>
       <!-- Honeypot field -->
       <input type="text" name="company" class="hidden" tabindex="-1" autocomplete="off">
       <div id="itemFields"></div>
@@ -440,6 +460,11 @@
       const payload = {
         name: data.get('name'),
         email: data.get('email'),
+        referredBy: data.get('referredBy'),
+        shippingAddress: data.get('shippingAddress'),
+        shippingCity: data.get('shippingCity'),
+        shippingState: data.get('shippingState'),
+        shippingZip: data.get('shippingZip'),
         items: Array.from({length: 10}).map((_, i) => ({
           item: data.get(`item_${i+1}`),
           qty: data.get(`qty_${i+1}`)
@@ -558,4 +583,4 @@
     });
   </script>
 </body>
-</html> 
+</html>

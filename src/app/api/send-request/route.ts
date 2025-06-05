@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     if (data.company) {
       return NextResponse.json({ ok: true });
     }
-    const { name, email, items } = data;
+    const { name, email, referredBy, shippingAddress, shippingCity, shippingState, shippingZip, items, special } = data;
     if (!name || !email || !Array.isArray(items)) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
     }
@@ -83,8 +83,28 @@ export async function POST(req: NextRequest) {
     }).join('\n');
     // Generate random order code
     const orderCode = generateOrderCode();
+    
+    // Format shipping address
+    const shippingInfo = [shippingAddress, shippingCity, shippingState, shippingZip]
+      .filter(Boolean)
+      .join(', ');
+    
     // Compose email body
-    const mailText = `New request received:\n\nOrder Code: ${orderCode}\nName: ${name}\nEmail: ${email}\n\nItems Requested:\n${itemList}\n\nOrder Total: $${orderTotal.toFixed(2)}`;
+    const mailText = `New request received:
+
+Order Code: ${orderCode}
+Name: ${name}
+Email: ${email}
+${referredBy ? `Referred By: ${referredBy}` : ''}
+${shippingInfo ? `Shipping Address: ${shippingInfo}` : ''}
+
+Items Requested:
+${itemList}
+
+${special ? `Special Instructions: ${special}` : ''}
+
+Order Total: $${orderTotal.toFixed(2)}`;
+    
     // Set up transporter
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -113,14 +133,40 @@ export async function POST(req: NextRequest) {
       const sheets = google.sheets({ version: 'v4', auth });
       const spreadsheetId = '1NgljLac71DtjWuV9gvaWxIAmdFHR6tjGrJ2dRgacHrQ';
       const range = 'Sheet1!A1:Z'; // Adjust if your tab is not Sheet1
+      
+      // Parse items into separate columns (up to 10 items with quantities)
+      const itemColumns: string[] = [];
+      const qtyColumns: string[] = [];
+      for (let i = 0; i < 10; i++) {
+        const item = items[i];
+        itemColumns.push(item?.item || '');
+        qtyColumns.push(item?.qty || '');
+      }
+      
       const row = [
-        new Date().toISOString(),
-        orderCode,
-        name,
-        email,
-        orderTotal.toFixed(2),
-        itemList.replace(/\n/g, '; '),
+        new Date().toISOString(), // Timestamp
+        '', // Customer Rank (empty for now)
+        referredBy || '', // Referred by
+        name, // Name
+        email, // Email
+        '', // Mobile Number (not collected yet)
+        orderCode, // Purchase Order Number
+        ...itemColumns, // Product (1) through Product (10)
+        ...qtyColumns, // Quantity (1) through Quantity (10)
+        shippingAddress || '', // Shipping Address Street
+        shippingCity || '', // Shipping Address City
+        shippingZip || '', // Shipping Address Zip
+        shippingState || '', // Shipping Address State
+        '', // Invoice Platform (empty for now)
+        '', // Invoice Timestamp (empty for now)
+        '', // Invoice ID (empty for now)
+        '', // Invoice Status (empty for now)
+        orderTotal.toFixed(2), // Total Amount Due
+        '', // Total Amount Paid (empty for now)
+        '', // Balance Owed (empty for now)
+        special || '', // Special Instructions
       ];
+      
       await sheets.spreadsheets.values.append({
         spreadsheetId,
         range,
@@ -131,9 +177,10 @@ export async function POST(req: NextRequest) {
       console.error('Failed to append to Google Sheet:', sheetError);
       // Optionally, return error here if you want to fail the whole request
     }
+
     return NextResponse.json({ ok: true, orderTotal: orderTotal.toFixed(2) });
   } catch (error) {
     console.error('API send-request error:', error);
     return NextResponse.json({ error: 'Failed to send email' }, { status: 500 });
   }
-} 
+}
