@@ -3,7 +3,7 @@ import nodemailer from 'nodemailer';
 
 type Item = { item: string; qty: string };
 
-function generateOrderCode(length = 6) {
+function generateOrderCode() {
   // Generate B2B order code with date: B2B-MMDD-XXXX-N format
   const now = new Date();
   const month = String(now.getMonth() + 1).padStart(2, '0');
