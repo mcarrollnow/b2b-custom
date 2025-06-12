@@ -4,12 +4,20 @@ import nodemailer from 'nodemailer';
 type Item = { item: string; qty: string };
 
 function generateOrderCode(length = 6) {
+  // Generate B2B order code with date: B2B-MMDD-XXXX-N format
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const dateCode = `${month}${day}`;
+  
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
-  for (let i = 0; i < length; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  let randomCode = '';
+  for (let i = 0; i < 4; i++) {
+    randomCode += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return `B2B-${code}`;
+  
+  const sessionCounter = 1;
+  return `B2B-${dateCode}-${randomCode}-${sessionCounter}`;
 }
 
 // --- BEGIN PRICE LIST ---
@@ -121,7 +129,7 @@ Order Total: $${orderTotal.toFixed(2)}`;
       replyTo: email,
     });
 
-    // --- Google Sheets append logic ---
+    // --- Google Sheets append logic using Perfect 29-Column Mapping ---
     try {
       // Dynamically import googleapis for edge compatibility
       const { google } = await import('googleapis');
@@ -131,51 +139,48 @@ Order Total: $${orderTotal.toFixed(2)}`;
         scopes: ['https://www.googleapis.com/auth/spreadsheets'],
       });
       const sheets = google.sheets({ version: 'v4', auth });
-      const spreadsheetId = '1NgljLac71DtjWuV9gvaWxIAmdFHR6tjGrJ2dRgacHrQ';
-      const range = 'Sheet1!A1:Z'; // Adjust if your tab is not Sheet1
       
-      // Create arrays for all columns - EXACTLY matching the CSV template
-      const row = [
-        new Date().toISOString(), // Timestamp
-        '', // Customer Rank (empty for now)
-        referredBy || '', // Referred by
-        name, // Name
-        email, // Email
-        '', // Mobile Number (not collected yet)
-        orderCode, // Purchase Order Number
-      ];
+      // ✅ UNIFIED GOOGLE SHEET - Same as newpurchaseform and b2b
+      const spreadsheetId = '1UGEuFVCLfAJas8Qd2Mjh_kZEb4IBYC4ElJFANRW441Q';
+      const range = 'Orders!A:AC';
       
-      // Add 8 product/quantity pairs (columns 8-23)
-      for (let i = 0; i < 8; i++) {
+      // Transform B2B-Custom form data to Perfect 29-Column Structure (A-AC)
+      const now = new Date().toISOString();
+      const row = new Array(29).fill(''); // 29 columns (A-AC)
+      
+      // Map B2B-Custom form data to exact column positions
+      row[0] = now;                           // A: Submission_Timestamp
+      row[1] = orderCode;                     // B: Order_Code (B2B-MMDD-XXXX-N format)
+      row[2] = 'B2B_TRANSACTION';             // C: Record_Type
+      row[3] = name || '';                    // D: Customer_Name
+      row[4] = email || '';                   // E: Email
+      row[5] = '';                            // F: Business_Name (not collected in current form)
+      row[6] = '';                            // G: Phone (not collected in current form)
+      row[7] = shippingAddress || '';         // H: Address_Street
+      row[8] = shippingCity || '';            // I: Address_City
+      row[9] = shippingState || '';           // J: Address_State
+      row[10] = shippingZip || '';            // K: Address_ZIP
+      
+      // Map items array to product columns (L-T: 3 products × 3 fields each)
+      for (let i = 0; i < Math.min(3, items.length); i++) {
         const item = items[i];
-        row.push(item?.item || ''); // Product
-        row.push(item?.qty || ''); // Quantity
+        const baseIndex = 11 + (i * 3); // Start at column L (index 11)
+        const price = PRICE_LIST[item.item?.trim() || ''] || 0;
+        
+        row[baseIndex] = item.item || '';       // Product_X_Name
+        row[baseIndex + 1] = price.toString();  // Product_X_Price
+        row[baseIndex + 2] = item.qty || '';    // Product_X_Quantity
       }
       
-      // Add Product (9) and Quantity (9) - columns 24-25
-      row.push('', ''); // Empty for now
-      
-      // Add shipping address fields (columns 26-29)
-      row.push(
-        shippingAddress || '', // Shipping Address Street
-        shippingCity || '',    // Shipping Address City
-        shippingZip || '',     // Shipping Address Zip
-        shippingState || ''    // Shipping Address State
-      );
-      
-      // Add invoice fields (columns 30-35)
-      row.push(
-        '', // Invoice Platform
-        '', // Invoice Timestamp
-        '', // Invoice ID
-        '', // Invoice Status
-        orderTotal.toFixed(2), // Total Amount Due
-        '', // Total Amount Paid
-        ''  // Balance Owed
-      );
-      
-      // Add special instructions (column 36)
-      row.push(special || '');
+      row[20] = orderTotal.toFixed(2);        // U: Total_Amount
+      row[21] = special || '';                // V: Special_Instructions
+      row[22] = 'B2B';                        // W: Order_Type
+      row[23] = 'B2B_CUSTOM_FORM';            // X: Submission_Source (distinguish from regular B2B)
+      row[24] = 'PENDING';                    // Y: Payment_Status
+      row[25] = 'PENDING';                    // Z: Fulfillment_Status
+      row[26] = 'PENDING';                    // AA: Invoice_Status
+      row[27] = 'SUBMITTED';                  // AB: Lifecycle_Stage
+      row[28] = now;                          // AC: Last_Updated
       
       await sheets.spreadsheets.values.append({
         spreadsheetId,
@@ -183,6 +188,8 @@ Order Total: $${orderTotal.toFixed(2)}`;
         valueInputOption: 'USER_ENTERED',
         requestBody: { values: [row] },
       });
+      
+      console.log('✅ B2B-Custom order inserted into unified sheet:', orderCode);
     } catch (sheetError) {
       console.error('Failed to append to Google Sheet:', sheetError);
       // Optionally, return error here if you want to fail the whole request
